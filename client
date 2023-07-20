@@ -1,0 +1,45 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+
+#define PORT 8080
+
+int main() {
+    int client_fd;
+    struct sockaddr_in server_address;
+
+    // Create socket
+    if ((client_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        perror("socket failed");
+        exit(EXIT_FAILURE);
+    }
+
+    server_address.sin_family = AF_INET;
+    server_address.sin_port = htons(PORT);
+
+    // Convert IP address from string to binary format
+    if (inet_pton(AF_INET, "10.0.2.15", &server_address.sin_addr) <= 0) {
+        perror("inet_pton error");
+        exit(EXIT_FAILURE);
+    }
+
+    // Connect to the server
+    if (connect(client_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0) {
+        perror("connect failed");
+        exit(EXIT_FAILURE);
+    }
+
+    int random_number;
+
+    // Receive the random number from the server
+    if (recv(client_fd, &random_number, sizeof(random_number), 0) <= 0) {
+        perror("recv failed");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Received random number from server: %d\n", random_number);
+
+    close(client_fd);
+    return 0;
+}
